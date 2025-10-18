@@ -22,6 +22,87 @@
             min-height: 100vh;
             overflow: hidden;
         }
+
+        /* Password Modal Styles */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .password-container {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+
+        .password-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #00d4aa;
+        }
+
+        .password-subtitle {
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 15px;
+            background: #2a2a3a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+        }
+
+        .password-submit {
+            background: linear-gradient(135deg, #00d4aa, #009975);
+            border: none;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .password-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 170, 0.4);
+        }
+
+        .password-error {
+            color: #ff6b35;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
         
         .container {
             display: flex;
@@ -364,7 +445,19 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Password Modal -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-container">
+            <h2 class="password-title">Advanced Trading Bot</h2>
+            <p class="password-subtitle">Enter password to access the trading interface</p>
+            <input type="password" class="password-input" id="passwordInput" placeholder="Enter Password" autocomplete="off">
+            <button class="password-submit" id="passwordSubmit">ACCESS TRADING BOT</button>
+            <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
+        </div>
+    </div>
+    
+    <!-- Main Application (initially hidden) -->
+    <div class="container" id="appContainer" style="display: none;">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="connection-status">
@@ -499,6 +592,10 @@
     </div>
 
     <script>
+        // Password configuration
+        const CORRECT_PASSWORD = "FINORIX";
+        let isAuthenticated = false;
+        
         // Global variables
         let tradingViewWidget = null;
         let binanceWS = null;
@@ -510,9 +607,65 @@
         let historicalData = [];
         let dataUpdateInterval = null;
 
-        // Initialize application
+        // Initialize password protection
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Initializing Advanced Trading Bot...');
+            console.log('🔒 Initializing password protection...');
+            initializePasswordProtection();
+        });
+
+        // Password protection system
+        function initializePasswordProtection() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordSubmit = document.getElementById('passwordSubmit');
+            const passwordError = document.getElementById('passwordError');
+            const passwordModal = document.getElementById('passwordModal');
+            const appContainer = document.getElementById('appContainer');
+            
+            // Focus on password input
+            passwordInput.focus();
+            
+            // Handle password submission
+            passwordSubmit.addEventListener('click', function() {
+                checkPassword();
+            });
+            
+            // Handle Enter key in password field
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+            
+            function checkPassword() {
+                const enteredPassword = passwordInput.value.trim();
+                
+                if (enteredPassword === CORRECT_PASSWORD) {
+                    // Correct password
+                    isAuthenticated = true;
+                    passwordError.style.display = 'none';
+                    passwordModal.style.display = 'none';
+                    appContainer.style.display = 'flex';
+                    
+                    console.log('✅ Password correct. Initializing trading bot...');
+                    initializeTradingBot();
+                } else {
+                    // Incorrect password
+                    passwordError.style.display = 'block';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                    
+                    // Add shake animation to input
+                    passwordInput.style.animation = 'none';
+                    setTimeout(() => {
+                        passwordInput.style.animation = 'shake 0.5s';
+                    }, 10);
+                }
+            }
+        }
+
+        // Initialize trading bot after authentication
+        function initializeTradingBot() {
+            console.log('🚀 Initializing Advanced Trading Bot...');
             initializeTradingView();
             initializeEventListeners();
             updateCurrentTime();
@@ -520,7 +673,7 @@
             
             // Load initial historical data
             loadHistoricalData();
-        });
+        }
 
         // Initialize TradingView widget with CLEAN CHART
         function initializeTradingView() {
